@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import Head from 'next/head';
 import { MicroStacksProvider, useUserData, useAuth } from 'micro-stacks/react';
 import { Container } from '@chakra-ui/react';
@@ -14,6 +14,7 @@ import ClaimNFT from '../components/claim';
 import ClaimSuccess from '../components/claimsuccess';
 import ClaimDisabled from '../components/claimdisabled';
 import FAQ from '../components/faq';
+import { SafeSuspense } from '../components/safe-suspense';
 
 import { getNetwork, getNetworkPrincipal } from '../lib/helpers';
 import {
@@ -30,9 +31,9 @@ import {
   claimTxState,
   useNftCountEnabled,
 } from '../lib/store';
-import { SafeSuspense } from '../components/safe-suspense';
+// import { SafeSuspense } from '../components/safe-suspense';
 
-function Home() {
+const Home = React.memo(() => {
   const { isSignedIn } = useAuth();
   const user = useUserData();
   const [claimed, setClaimed] = useAtom(nftClaimedState);
@@ -52,13 +53,7 @@ function Home() {
     },
   };
 
-  return (
-    <>
-      <NFTPreview claimed={claimed} count={count} mobile={isMobile} />
-      {isMobile ? <MobileNote /> : renderCTA()}
-      {enabled && !claimed && <FAQ />}
-    </>
-  );
+
 
   function renderCTA() {
     if (!enabled) return <ClaimDisabled />;
@@ -72,8 +67,18 @@ function Home() {
     else if (isSignedIn && claimed) {
       return <ClaimSuccess user={user} txid={tx} />;
     }
+    return <></>
   }
-}
+
+  console.log(isMobile, claimed, count);
+  return (
+    <>
+      <NFTPreview claimed={claimed || false} count={0} mobile={isMobile} />
+      {isMobile ? <MobileNote /> : renderCTA()}
+      {enabled && !claimed && <FAQ />}
+    </>
+  );
+});
 
 export const getServerSideProps = getServerSideQueryProps([nftCountQuery])();
 
